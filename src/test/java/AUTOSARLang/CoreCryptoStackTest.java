@@ -1,4 +1,4 @@
-/*package AUTOSARLang;
+package AUTOSARLang;
 
 import org.junit.Test;
 import org.junit.After;
@@ -6,7 +6,7 @@ import org.junit.After;
 import auto.*;
 import core.*;
 public class CoreCryptoStackTest {
-    
+     
     @Test
     public void testEncDataRWViaCryptoStack(){
         CryptoStack cryptoStack = new CryptoStack("CryptoStack");
@@ -22,8 +22,30 @@ public class CoreCryptoStackTest {
         attacker.attack();
         
         System.out.println("An attacker having CryptoStack.access,");
+        cryptoStack.circumventCryptoService.assertCompromisedInstantaneously();
         encryptedData.readEncrypted.assertUncompromised(); //??
         encryptedData.writeEncrypted.assertUncompromised(); //??
+        System.out.println();
+    }
+    
+        @Test
+    public void testEncDataDenyAccess(){
+        CryptoStack cryptoStack = new CryptoStack("CryptoStack");
+        EncryptedData encryptedData = new EncryptedData("EncryptedData");
+        PersistentData persistData = new PersistentData("PersistentData");
+        
+        cryptoStack.addEncryptedData(encryptedData);
+        cryptoStack.addDecryptedData(encryptedData);
+        cryptoStack.addPersistentData(persistData);
+        
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(cryptoStack.access);
+        attacker.attack();
+        
+        System.out.println("An attacker having CryptoStack.access,");
+        cryptoStack.denialOfService.assertCompromisedInstantaneously();
+        encryptedData.denyAccess.assertCompromisedInstantaneously();
+        persistData.denyAccess.assertCompromisedInstantaneously();
         System.out.println();
     }
     
@@ -42,66 +64,24 @@ public class CoreCryptoStackTest {
         cryptographicKey.read.assertCompromisedInstantaneously();
         System.out.println();
     }
-    
-    @Test
-    public void testManifestRWDViaCryptoStackThenIAM(){
-        CryptoStack cryptoStack = new CryptoStack("CryptoStack");
-        IAM iam = new IAM("IAM");
-        Manifest manifest = new Manifest("Manifest");
-        
-        iam.addPolicies(manifest);
-        cryptoStack.addIam(iam);
-        
-        Attacker attacker = new Attacker();
-        attacker.addAttackPoint(cryptoStack.access);
-        attacker.attack();
-        
-        System.out.println("An attacker having CryptoStack.access,");
-        manifest.read.assertCompromisedInstantaneously();
-        manifest.write.assertCompromisedInstantaneously();
-        manifest.delete.assertCompromisedInstantaneously();
-        manifest.readCapability.assertCompromisedInstantaneously();
-        manifest.modifyCapabily.assertCompromisedInstantaneously();
-        System.out.println();
-    }
-    
-    @Test
-    public void testIAMAccessViaCryptoStack(){
-        CryptoStack cryptoStack = new CryptoStack("CryptoStack");
-        IAM iam = new IAM("IAM");
-        
-        cryptoStack.addIam(iam);
-        
-        Attacker attacker = new Attacker();
-        attacker.addAttackPoint(cryptoStack.access);
-        attacker.attack();
-        
-        System.out.println("An attacker having CryptoStack.access,");
-        iam.access.assertCompromisedInstantaneously();
-        
-        //Further attacks
-        iam._softwareAccess.assertCompromisedInstantaneously();
-        iam.denialOfService.assertCompromisedInstantaneously();
-        iam.circumventPEP.assertCompromisedInstantaneously();
-        System.out.println();
-    }
-    
-    @Test
-    public void testDatadDenyAccessViaCryptoStack(){
-        CryptoStack cryptoStack = new CryptoStack("CryptoStack");        
-        Data data = new Data("Data");
 
-        cryptoStack.addData(data);
+    
+    @Test
+    public void testIAMReqAuthViaCryptoStack(){
+        CryptoStack cryptoStack = new CryptoStack("CryptoStack");
+        IAM iam = new IAM("IAM");
+        
+        cryptoStack.addIam(iam);
         
         Attacker attacker = new Attacker();
         attacker.addAttackPoint(cryptoStack.access);
         attacker.attack();
         
         System.out.println("An attacker having CryptoStack.access,");
-        data.denyAccess.assertCompromisedInstantaneously();
+        iam.requestAuthentication.assertCompromisedInstantaneously();
         System.out.println();
     }
-    
+
     @Test
     public void testCryptoStackttacks(){
         CryptoStack cryptoStack = new CryptoStack("CryptoStack");        
@@ -111,9 +91,10 @@ public class CoreCryptoStackTest {
         attacker.attack();
         
         System.out.println("An attacker having IAM.access,");
-        cryptoStack._softwareAccess.assertCompromisedInstantaneously();
-        cryptoStack.denialOfService.assertCompromisedInstantaneously();
+        cryptoStack._adaptivePlatformAccess.assertCompromisedInstantaneously();
+        cryptoStack.circumventPEP.assertCompromisedInstantaneously();
         cryptoStack.circumventCryptoService.assertCompromisedInstantaneously();
+        cryptoStack.denialOfService.assertCompromisedInstantaneously();
         System.out.println();
     }
     
@@ -152,5 +133,3 @@ public class CoreCryptoStackTest {
         Defense.allDefenses.clear();
     }
 }
-
-*/

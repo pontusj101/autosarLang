@@ -1,0 +1,275 @@
+include APAdaptiveMachine.mal
+
+category System {
+	
+	//Directly taken from the coreLang ---------
+	asset Service extends Software {}
+	asset Client extends Software {}
+
+	//AUTOSARLang specific ---------------------
+	abstractAsset UserApplication extends AdaptivePlatform 
+		info: "User Application is the top-most layer of the adaptive platform, which is a hardware-independent user-defined application that runs on top of the runtime environment, ARA."
+	{
+		| compromise 
+			info: "User apps are the most vulnerable components of the platform."
+			rationale: "Applications can be compromised, maybe, by phishing, injection, etc... " 
+			->	access
+
+		| launch
+			info: "Start up user applications."
+			rationale: "User applications are launched by the Execution Management of the platform."
+			->	access 
+
+		| access
+			info: "Get access to a user application."
+			rationale: "Access to the application implies an attacker has the capability of the application in the platform. Data, in this case, can be persistent data, manifest, or other forms of data."
+			->	_adaptivePlatformAccess,
+				denialOfService,
+				data.requestAccess, 
+				functionalCluster.requestAccess,
+				fcInterfaces.access,
+				userAppClient.access
+			
+		| shutdown
+			info: "Shutdown user applications."
+			rationale: "User applications are shutdown by the Execution Management of the platform."
+			->	denialOfService
+
+		| denialOfService
+			info: "Perform a DoS attack on the application."
+			rationale: "Data, in this case, can be persistent data, manifest, or other forms of data that belongs to the application. Applications can be denied from services by the runtime environment, ARA. Possibly, by denying services of the FC (for the platform services/functionalities) or other user applications (for the non-platform services)."
+			->	data.denyAccess,
+				userAppService.denialOfService
+	}
+
+	asset ARA extends AdaptivePlatform {
+		| access 
+			info: "Get access to the ARA (AUTOSAR Runtime environment for Adaptive Applications)."
+			rationale: "Once attackers gain access to the library of service interfaces and the functional cluster interfaces (such as interfaces of the operating system, execution management, communication management, etc.), they can do other more attacks."
+			-> 	_adaptivePlatformAccess,
+				denialOfService
+
+		| compromise 
+			->	access,
+				denialOfService,
+				informationLeak,
+				messageInjection
+
+		| informationLeak
+			info: "Make an information leakage between running user applications."
+			rationale: "User applications request for library interfaces for further access, then, attackers on the ARA can leak information between the requesting applications."
+			->	information.read
+
+		| messageInjection
+			info: "Inject messages passing through ARA interfaces."
+			rationale: "Message passing through ARA interface is either set of data or information."
+			->	data.write
+
+		| denialOfService
+			info: "Perform a denial of service to the library of services/functionalities interfaces."
+			rationale: "This attack step, in turn, denies user applications from both accessing the functional cluster services/functionalities and non-platform services."
+			->	platformApps.denialOfService,
+				userApps.denialOfService
+	}
+
+	abstractAsset FunctionalCluster extends AdaptivePlatform 
+		info: "A functional cluster is a collective name for the foundational software components of the platform. It contains platform services and foundation."
+	{
+		| launch
+			info: "Start up functional cluster applications."
+			rationale: "Any functional cluster can be launched/started by the Execution Management, which is a functional cluster by itself."
+			->	access 
+
+		| shutdown
+			info: "Shutdown functional cluster applications."
+			rationale: "Functional cluster applications are shutdown by the Execution Management of the platform."
+			->	denialOfService
+
+		| access
+			-> 	_adaptivePlatformAccess,
+				denialOfService,
+				circumventPEP
+
+		| requestAccess
+			info: "Make access request to the functional cluster."
+			rationale: "requestAccess >> iam.requestAuthentication >> authenticate >> access!"
+			->	iam.requestAuthentication
+
+		| circumventPEP 
+			info: "Circumvent PEP (Policy Enforcement Point) of the functional cluster element."
+			rationale: "Attackers can bypass the PEP or circumvent the policy decision received from IAM. Reaching this step is enough, and it will be redefined by each child."
+	}
+
+	abstractAsset AdaptivePlatformFoundation extends FunctionalCluster {}
+	abstractAsset AdaptivePlatformService extends FunctionalCluster {}
+
+	asset OperatingSystem extends AdaptivePlatformFoundation 
+		info: "OS in AUTOSAR adaptive platform is a POSIX-based execution context."
+		rationale: "In AUTOSAR Adaptive Platform, the OS context is a POSIX-based in which user applications use only PSE51 as an interface whereas functional cluster applications use any available interface."
+	{
+		| access
+			info: "Get access to the operating system."
+			rationale: "By any means, attackers get access to the operating system, maybe, from its parent assets after authentication via authenticated access or after access control is bypassed."
+			-> 	_adaptivePlatformAccess,
+				denialOfService,
+				dataInjection,
+				memoryCorruption,
+				malware,
+				accessVulnerabilities.exploit
+
+		& malware 
+			info: "Inject a malware program to the OS."
+			rationale: "A malware is a general term for computer viruses, worms, trojan horses, spyware, adware, most rootkits, and other malicious programs [5]."
+			->	accounts.compromise,
+				data.read,
+				data.write,
+				data.denyAccess,
+				memoryCorruption,
+				denialOfService,
+				bypassAccessControl
+
+		| denialOfService
+			info: "Perform a DoS attack on the operating system."
+			rationale: "Performed by flooding services, exhausting resources, network requests, etc."
+			->	apInstance.denialOfService,
+				data.denyAccess,
+				adaptiveMachine.denialOfService 
+
+		| dataInjection
+			info: "Inject data to a running process or thread."
+			rationale: "Data injection from process to process, thread to thread, or from attacker to a processing data can be done."
+			->	data.write
+
+		| informationLeak
+			info: "Leak information about the running process."
+			rationale: "As a result of memory corruption, an information leak can occur [6|Page19]."
+			->	information.read
+
+		& memoryCorruption
+			info: "Perform a memory corruption from unhandled code."
+			rationale: "User applications and functional cluster are implemented in C++. Thus, their process can cause memory corruption."
+			->	informationLeak,
+				denialOfService,
+				dataInjection,
+				accounts.compromise 
+				
+		# protectedRuntimeEnvironment
+			rationale: "This defense mechanism is a more general one that includes data execution prevention, stack smashing protection, address space layout randomization, control-flow integrity, code-pointer integrity/separation, pointer authentication, etc [6|pages20-27]."
+			->	memoryCorruption
+
+		# antiMalware [UniformDistribution(1.0,2.0)]
+			->	malware
+	}
+
+	asset ExecutionManagement extends AdaptivePlatformFoundation 
+		info: "An Execution Management is managed by the OS."
+	{
+		| access 
+			info: "Get access to the Execution Management (EM)."
+			rationale: "Execution Management starts and shuts down applications and services, which may lead to other exploitations."
+			-> 	_adaptivePlatformAccess,
+				circumventStateTransition,
+				userApps.launch,
+				userApps.shutdown,
+				platformApps.launch,
+				platformApps.shutdown
+
+		| circumventStateTransition
+			info: "Circumvent the state transition of processes, applications, machine, or functional group."
+			rationale: "Execution Management performs the state transitions and controls the actual set of running processes, depending on the current states [1]."
+			->	platformApps.denialOfService,
+				userApps.denialOfService
+	}
+}
+
+category Security {
+	
+	asset Manifest extends Data 
+		info: "Manifest, in AP, means a configuration file. There are three types of manifest files namely application manifest, service instance manifest, and machine manifest."
+	{
+		| read
+			info: "Read manifest files."
+			->	platformApps.authenticate,
+				information.read,
+				containedData.read
+
+		| write
+			info: "Write manifest files."
+			rationale: "Writing a manifest file can imply reading and/or deleting it. Thus, can authenticate the FC and/or deny service for both user apps and platform apps."
+			->	read,
+				delete,
+				information.write,
+				containedData.write
+
+		| delete
+			info: "Delete manifest files"
+			->	denyAccess,
+				information.delete,
+				containedData.delete
+
+		| denyAccess
+			info: "Deny access to the AA's configuration file"
+			rationale: "Deny access to the manifest file can cause a DoS attack on the platform applications as well as user applications."
+			->	userApps.denialOfService,
+				platformApps.denialOfService
+	}
+
+   	asset IAM extends AdaptivePlatformService
+   		info: "IAM - Identity Access Management, where authentication service in AP is provided."
+   	{
+   		| access
+   			info: "Get access to the IAM framework."
+   			rationale:"Assumption: attackers get access to the running IAM instance."
+   			->	_adaptivePlatformAccess,
+   				denialOfService,
+   				circumventPDP,
+   				processedPolicies.read,
+   				processedCapabilities.read
+
+   		| denialOfService
+   			info: "Making the IAM framework unavailable."
+   			->	platformApps.denialOfService,
+   				data.denyAccess
+
+   		| circumventPDP
+   			info: "Circumvent PDP (Policy Decision Point) of the IAM."
+   			rationale: "Circumventing PDP implies bypass FC authentication or provide data access."
+   			->	platformApps.bypassAccessControl,
+   				data.requestAccess
+
+   		| requestAuthentication
+   			info: "Make an authentication request for the IAM."
+   			rationale: "Functional cluster requests IAM to authenticate for the requesting client, which is a user application."
+   			->	platformApps.authenticate
+   	}
+}
+
+associations {	
+	UserApplication [userApp]	  	* 	<-- FCAccess			--> * 				[functionalCluster]	FunctionalCluster
+	UserApplication [userApps]	 	*	<--	RuntimeEnvironment	-->	*			 		[fcInterfaces]	ARA	
+	UserApplication [userAppService]*	<-- NonPlatformService 	--> * 					[userAppClient]	UserApplication
+		info: "User applications provide non-platform services to other user applications."		 
+
+	ARA [fcInterfaces]				*	<--	DataProcess 		-->	*							[data]	Data
+	ARA [fcInterfaces]				*	<--	ProcessedDataLeak	-->	*					[information]	Information
+	ARA [library]					0-1	<-- LibraryInterface 	--> *					[platformApps]	FunctionalCluster
+
+	OperatingSystem [os] 			1 	<-- OsAccounts 			--> *						[accounts]	Account	
+	OperatingSystem [os]			*	<--	DataProcess 		-->	*							[data]	Data
+	OperatingSystem [os]			*	<--	ProcessedData		-->	*					[information]	Information	
+	OperatingSystem [os] 			1 	<-- ApOs 				--> *					[apInstance]	AdaptivePlatform
+
+	ExecutionManagement [em]		1	<-- AAManagement 		--> * 						[userApps]	UserApplication 
+	ExecutionManagement [em]		*	<-- FCManagement 		--> * 					[platformApps]	FunctionalCluster
+
+	IAM[iam]						*	<-- Authentication 		--> *					[platformApps]	FunctionalCluster
+		info: "Any access request to FC, in turn, requests IAM for authentication."
+	IAM [authInterface]				0-1	<--	DataAccess 			-->	*							[data]	Data
+	IAM [iamFramework]				0-1	<--	ReadPolicy 			-->	*				[processedPolicies]	Manifest
+		info: "Manifest, in this case, means Service Instance Manifest."
+	IAM [accessManager]				0-1	<--	ReadCapability 		-->	*			[processedCapabilities]	Manifest
+		info: "Manifest, in this case, means Application Manifest."
+
+	Manifest [applicationManifests] *	<--	Capability 			-->	*						[userApps]	UserApplication
+	Manifest [serviceInstManifests] *	<--	ServiceInterfaceReq	-->	*					[platformApps]	FunctionalCluster
+}

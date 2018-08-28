@@ -1,0 +1,45 @@
+//----------------------
+//This MAL specification defines a model of an adaptive/intelligent machine, which inherits the properties and associations of the basic machine; and comprises of an adaptive machine that extends the machine asset, adaptive platform that extends the software asset, intelligent ECU that extends the adaptive machine, and ECU's firmware that extends the basic-software. Generally, this specification includes the basic machine MAL specification and specializes the model to AP.
+//----------------------
+
+include APBasicMachine.mal
+
+category System {
+
+	asset AdaptiveMachine extends Machine 
+		info: "An adaptive machine is a hardware or virtual machine that executes an adaptive platform instance." 
+	{
+		| access
+			->	_adaptiveMachineAccess
+
+		| _adaptiveMachineAccess
+			rationale: "<adaptivePlatform.connect> is taken from machine asset, where the software is replaced with adaptivePlatform."
+			->	_machineAccess,
+				denialOfService, 
+				adaptivePlatform.connect,
+				data.requestAccess,
+				accessVulnerabilities.exploit
+
+		| denialOfService 
+			info: "Perform a DoS attack on the adaptive machine."
+			rationale: "<adaptivePlatform.denialOfService> is taken from machine asset, where the software is replaced with adaptivePlatform."
+			->	adaptivePlatform.denialOfService, 
+				data.denyAccess
+	}
+
+	asset AdaptivePlatform extends AdaptiveMachine 
+		info: "An adaptive platform is a software platform that runs on an adaptive machine."
+		rationale: "As software is to a machine, an adaptive platform is to an adaptive machine."
+	{
+		| access
+			->	_adaptivePlatformAccess
+
+		| _adaptivePlatformAccess
+			->	_adaptiveMachineAccess,
+				adaptiveMachine.connect
+	}
+}
+
+associations {	
+	AdaptiveMachine [adaptiveMachine] 0-1	<-- APExecution		-->	* 				[adaptivePlatform]	AdaptivePlatform
+}

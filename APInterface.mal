@@ -1,0 +1,40 @@
+include APInternetwork.mal
+
+category System {
+
+	asset AdaptiveApplication extends UserApplication 
+		info: "Adaptive Application is a user-defined application, which is an underlying hardware independent."
+	{
+
+		| access
+			info: "Get access to a adaptive application."
+			->	_adaptivePlatformAccess,
+				denialOfService,
+				provideFakeService,
+				requestService,
+				data.requestAccess, 
+				functionalCluster.requestAccess,
+				fcInterfaces.access,
+				userAppService.access,
+				persistentData.requestAccess, 
+				applicationManifests.requestAccess
+
+		| requestService 
+			rationale: "An application can request a service, and gets access to the communication management. [1 page 15]"
+			->	cmClient.access //Does this require auth?
+
+		| provideFakeService 
+			info: "An application provides a fake service to other applications for further exploitation."
+			rationale: "An application can provide fake service to get access to the communication management foundation [1 page 15], For example, fake service can deny legitimate services, fake service can also read capabilities of other applications (service requesting applications)."
+			->	cmService.access,
+				userAppService.denialOfService,
+				applicationManifests.requestAccess
+	}
+}
+
+associations {	
+	AdaptiveApplication [adapApps]	*	<--	AppData 			-->	*							[data]	Data	
+	AdaptiveApplication [adapApps]	*	<--	AppPersistentData	-->	*				[persistentData]	PersistentData	
+	AdaptiveApplication [appClient]	* 	<-- ServiceRequest 		--> 0-1 					[cmService]	CommunicationManagement
+	AdaptiveApplication [npService]	* 	<-- ServiceRespond 		--> 0-1 					[cmClient]	CommunicationManagement
+}

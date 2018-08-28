@@ -1,0 +1,179 @@
+//----------------------
+//This MAL specification defines a model of a basic general-purpose machine that comprises a software, stored data and its information, accounts to access the machine, credentials for each account, machine vulnerabilities, and users. An asset in the specification represents each of the components.
+//----------------------
+
+category System {
+	
+	//Taken from coreLang, and reorganized
+	asset Machine {
+		| connect 
+			info: "Connect to the machine"
+			->	_machineConnect
+
+		| _machineConnect
+			rationale: "_ machineConnect is a helper attack step, which has the same meaning with the connect attack step. It is used by child assets."
+			->	authenticatedAccess,
+				connectPrivileges.compromise,
+				connectionVulnerabilities.exploit
+
+		| authenticate
+			info: "Does the attacker have the credentials of an account?"
+			->	authenticatedAccess
+
+		& authenticatedAccess
+	  		info: "One way to gain access to a machine is through legitimate authentication."
+			->	access
+
+		| bypassAccessControl
+			-> access
+	 
+		| access
+			info: "Get an access to the Machine."
+			rationale: "We don't explicitly model root access; that is not a sound primitive. Instead, such an account can be modelled explicitly by providing an account with access to all executees and all data."
+			->	_machineAccess
+
+		| _machineAccess
+			rationale: "_ machineAccess is a helper attack step, which has the same meaning with the access attack step. It is used by child assets. Attacks within this attack step are considered as attacks within the access attack step."
+			->	denialOfService, 
+				executees.connect,
+				data.requestAccess,
+				accessVulnerabilities.exploit
+
+		| denialOfService 
+			info: "Perform a DoS attack on the machine."
+			->	executees.denialOfService,
+				data.denyAccess
+	}	
+
+	//Directly taken from coreLang
+	asset Software extends Machine {
+		| access 
+			->	_softwareAccess
+
+		| _softwareAccess
+			->	_machineAccess,
+				executor.connect
+	}
+}
+
+//Directly taken from coreLang
+category Communication {	
+	asset Information
+		info: "Information can be stored as data and transmitted in data flows. Data and data flows are syntactic forms of the semantics represented by the Information asset. Thus, multiple data and data flow assets can contain the same information."
+	{
+		| read
+			info: "When information is read by the attacker, any associated confidentiality costs are incurred. It is sufficient that the attacker reads a single data or data flow to breach confidentiality."
+
+		& write
+			info: "When information is written by the attacker, any associated integrity costs are incurred. The attacker must, however, compromise all data and data flows in order to breach integrity. Thus, if the records of an ATM are modified, this might incur no cost as long as the master data is untouched."
+
+		& delete
+			info: "When information is deleted by the attacker, any associated availability costs are incurred. The attacker must, however, delete all data and data flows in order to breach integrity. Thus, if malware wipes a hard drive, this might incur no cost as long as a backup is easily accessible."
+	}
+
+	asset Data
+		info: "Data is a concrete, syntactic representation of Information at rest."
+	{
+		| requestAccess  
+			info: "When stored on a machine, access control needs to be granted."
+			-> 	authenticatedRead,
+				authenticatedWrite,
+				authenticatedDelete
+
+		| anyAccountRead 
+			info: "A single account with read privileges (in conjuction with data access) is enough to read the data."
+			-> 	authenticatedRead
+
+		| anyAccountWrite
+			info: "A single account with write privileges (in conjuction with data access) is enough to write the data."
+			-> 	authenticatedWrite
+
+		| anyAccountDelete
+			info: "A single account with delete privileges (in conjuction with data access) is enough to delete the data."
+			-> 	authenticatedDelete
+
+		& authenticatedRead
+			info: "Access and authentication will allow reading of data."
+			-> 	read
+
+		& authenticatedWrite
+			info: "Access and authentication will allow writing of data."
+			-> 	write
+
+		& authenticatedDelete
+			info: "Access and authentication will allow deleting of data."
+			-> 	delete
+
+		| read
+			info: "An attacker that reads the data, learns the encoded information."
+			-> 	information.read,
+				containedData.read
+
+		| write
+			-> 	delete,
+				information.write,
+				containedData.write
+
+		| delete
+			info: "Deletion of data leads to information loss only if there is no untouched copy elsewhere. If data is transmitted through data flows, those data flows will also be affected by the tampering."
+			-> 	information.delete,
+				containedData.delete
+
+		| denyAccess
+			info: "Denial-of-service attacks can make data unavailable."
+	}
+}
+
+//Directly taken from coreLang
+category Security {
+   asset Account {
+		| compromise
+			->	accessedMachines.authenticate, 
+				readData.anyAccountRead,
+				writtenData.anyAccountWrite,
+				deletedData.anyAccountDelete,
+				authenticatees.compromise
+	}
+
+   asset Credentials extends Data {
+	    | read
+	    	-> 	accounts.compromise
+	}
+	
+	asset Vulnerability {
+	   | exploit [ExponentialDistribution(10.0)]
+	      -> 	privileges.compromise
+   }
+}
+
+//Directly taken from coreLang
+category People {
+	asset User {
+		| compromise
+			->	accounts.compromise
+	}
+}
+
+associations {	
+	Account [connectPrivileges] 	*	<-- ConnectionPrivilees	--> *				[connectMachines]	Machine
+			info: "These privileges are granted to anyone who connects to a machine."
+	Account [accounts]			  	*	<-- AccessPrivileges	--> *				[accessedMachines]	Machine
+			info: "These accounts grant access the the machine."
+	Account [accounts]				*  	<-- Credentials			--> *					[credentials]	Credentials
+	Account [readingAccounts]		*  	<-- Read				--> *						[readData]	Data
+	Account [writingAccounts]		*  	<-- Write				--> *					[writtenData]	Data
+	Account [deletingAccounts]		*  	<-- Delete				--> *					[deletedData]	Data
+	Account [authenticators]		*	<-- Authentication		--> *				[authenticatees]	Account
+   	Account [privileges]			1-* <-- Privileges 			--> *				[vulnerabilities]	Vulnerability
+	Account [accounts]				*  	<-- UserAccount 		--> *							[users]	User
+	Account [assignedAccounts]		1-* <-- Assignment			--> *				[assignedSoftwares]	Software
+			info: "Software needs to be granted certain privileges when executing on a platform. When the software is compromised, the attacker gains its privileges on the platform."
+	
+	Data [data] 					*	<-- Representation 		--> 0-1					[information]	Information
+			info: "The data constitutes a syntactic representation at rest of the information."
+	Data [containingData] 			*	<-- Containment 		--> *					[containedData]	Data	
+	Machine [machines] 				*	<-- Storage 			--> *							[data]	Data
+	Machine	[connVulnerableMachine] *	<-- ConnectionVulnerability	--> 0-1	[connectionVulnerabilities]	Vulnerability	
+	Machine [accessVulnerableMachine] *	<-- AccessVulnerability --> 0-1			[accessVulnerabilities]	Vulnerability   	
+   	Machine [executor]				0-1	<-- Execution 			--> *						[executees]	Software
+}

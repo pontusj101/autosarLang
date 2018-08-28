@@ -65,7 +65,7 @@
               <workingDirectory>../dslCompiler</workingDirectory>
               <arguments>
                 <!-- <argument>./modelingInterface.mal</argument> -->
-                <argument>../AUTOSARLang/AUTOSARLang.mal</argument>
+                <argument>../AUTOSARLang/APInterface.mal</argument>
                 <argument>./target/generated-sources</argument>
                 <argument>auto</argument>
                 <argument>./lib</argument>

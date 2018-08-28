@@ -7,7 +7,7 @@ import auto.*;
 import core.*;
 
 public class CoreBusNetworkTest {
-    
+
     @Test
     public void testAccountCompromiseViaNetworkService(){
         BusNetwork bus = new BusNetwork("BusNetwork");
@@ -144,9 +144,9 @@ public class CoreBusNetworkTest {
         attacker.attack();
         
         System.out.println("=> An attacker having BusNet.access,");
-        ecu._machineConnect.assertCompromisedInstantaneously();
+        ecu._adaptiveMachineAccess.assertCompromisedInstantaneously();
         ecu.connect.assertCompromisedInstantaneously();
-        ecu.attemptChangeOperationMode.assertCompromisedInstantaneously();
+        ecu.attemptChangeOperationMode.assertCompromisedWithEffort();
         System.out.println();
     }
     

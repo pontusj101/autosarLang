@@ -9,103 +9,51 @@ import core.*;
 public class CoreAdaptiveApplicationTest {
     
     AdaptiveApplication adaptiveApplication;
-    Manifest manifest;
+    ExecutionManagement em;
     
     private void initializeObjects(){
         adaptiveApplication = new AdaptiveApplication("AdaptiveApplication");
-        manifest = new Manifest("Manifest");
-        adaptiveApplication.addConfigurationFile(manifest);
+        em = new ExecutionManagement("ExecutionManagement");
+        adaptiveApplication.addEm(em);
     }
     
     @Test
-    public void testOtherAAsAccess(){
+    public void testDoSFromAccess(){
         initializeObjects();
-        AdaptiveApplication aa1 = new AdaptiveApplication("AA1");
-        Manifest manifest1 = new Manifest("AA1Manifest");
-        manifest1.addOtherApps(aa1);
-        
-        adaptiveApplication.addManifestFiles(manifest1);
         
         Attacker attacker = new Attacker();
         attacker.addAttackPoint(adaptiveApplication.access);
         attacker.attack();
         
         System.out.println("An attacker having AA.access,");
-        aa1.access.assertCompromisedInstantaneously();
+        adaptiveApplication.denialOfService.assertCompromisedInstantaneously();
         System.out.println();
     }
     
     @Test
-    public void testOthersManifestAttacks(){
-        initializeObjects();
-        AdaptiveApplication aa1 = new AdaptiveApplication("AA1");
-        Manifest manifest1 = new Manifest("AA1Manifest");
-
-        aa1.addConfigurationFile(manifest1);
-        adaptiveApplication.addManifestFiles(manifest1);
-        
-        Attacker attacker = new Attacker();
-        attacker.addAttackPoint(adaptiveApplication.access);
-        attacker.attack();
-        
-        System.out.println("An attacker having AA.access,");
-        manifest1.readCapability.assertCompromisedInstantaneously();
-        manifest1.denyAccess.assertCompromisedInstantaneously();
-        System.out.println();
-    }
-    
-    @Test
-    public void testOwnManifestAttacks(){
+    public void testDoSFromShutdown(){
         initializeObjects();
         
         Attacker attacker = new Attacker();
-        attacker.addAttackPoint(adaptiveApplication.authenticate);
-        attacker.addAttackPoint(adaptiveApplication.access);
+        attacker.addAttackPoint(adaptiveApplication.shutdown);
         attacker.attack();
         
-        System.out.println("An attacker having AA.access AND/OR AA.authenticate,");
-        manifest.modifyCapabily.assertCompromisedInstantaneously();
-        manifest.read.assertCompromisedInstantaneously();
-        manifest.readCapability.assertCompromisedInstantaneously();
+        System.out.println("An attacker having AA.shutdown,");
+        adaptiveApplication.denialOfService.assertCompromisedInstantaneously();
         System.out.println();
     }
     
     @Test
-    public void testS2SMappingAttacks(){
-        initializeObjects();
-        SignalToServiceMappingService s2s = new SignalToServiceMappingService("S2SMapping");
-        adaptiveApplication.addServiceConverter(s2s);
-        
-        Attacker attacker = new Attacker();
-        attacker.addAttackPoint(adaptiveApplication.authenticate);
-        attacker.attack();
-        
-        System.out.println("An attacker having AA.authenticate,");
-        s2s.access.assertCompromisedInstantaneously();
-        s2s.denialOfService.assertCompromisedInstantaneously();
-        System.out.println();
-    }
-    
-    @Test
-    public void testIAMCircumventPEP(){
-        initializeObjects();
-        IAM iam = new IAM("IAM");
-        adaptiveApplication.addImaAPI(iam);
-        
-        Attacker attacker = new Attacker();
-        attacker.addAttackPoint(adaptiveApplication.access);
-        attacker.attack();
-        
-        System.out.println("An attacker having AA.access,");
-        iam.circumventPEP.assertCompromisedInstantaneously();
-        System.out.println();
-    }
-    
-    @Test
-    public void testDataRqstDenyAccess(){
+    public void testDataAccess(){
         initializeObjects();
         Data data = new Data("Data");
-        adaptiveApplication.addPersistentData(data);
+        adaptiveApplication.addData(data);
+        
+        PersistentData perData = new PersistentData("PersistentData");
+        adaptiveApplication.addPersistentData(perData);
+        
+        Manifest manifest = new Manifest("Manifest");
+        adaptiveApplication.addApplicationManifests(manifest);
         
         Attacker attacker = new Attacker();
         attacker.addAttackPoint(adaptiveApplication.access);
@@ -113,7 +61,70 @@ public class CoreAdaptiveApplicationTest {
         
         System.out.println("An attacker having AA.access,");
         data.requestAccess.assertCompromisedInstantaneously();
-        data.denyAccess.assertCompromisedInstantaneously();
+        perData.requestAccess.assertCompromisedInstantaneously();
+        manifest.requestAccess.assertCompromisedInstantaneously();
+
+        data.read.assertUncompromised();
+        perData.read.assertUncompromised();
+        manifest.read.assertUncompromised(); 
+        System.out.println();
+    }
+    
+    @Test
+    public void testFCAccess(){
+        initializeObjects();
+        FunctionalCluster fc = new FunctionalCluster("FunctionalCluster");
+        adaptiveApplication.addFunctionalCluster(fc);
+        
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(adaptiveApplication.access);
+        attacker.attack();
+        
+        System.out.println("An attacker having AA.access,");
+        fc.requestAccess.assertCompromisedInstantaneously();
+        fc.access.assertUncompromised();
+        fc.launch.assertUncompromised();
+        fc.shutdown.assertUncompromised();
+        fc.circumventPEP.assertUncompromised();
+        System.out.println();
+    }
+    
+    @Test
+    public void testFCAccessIAMAuth(){
+        initializeObjects();
+        FunctionalCluster fc = new FunctionalCluster("FunctionalCluster");
+        IAM iam = new IAM("IAM");
+        fc.addIam(iam);
+        iam.addPlatformApps(fc);
+        adaptiveApplication.addFunctionalCluster(fc);
+        
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(adaptiveApplication.access);
+        attacker.attack();
+        
+        System.out.println("An attacker having AA.access,");
+        fc.requestAccess.assertCompromisedInstantaneously();
+        iam.requestAuthentication.assertCompromisedInstantaneously();
+        fc.authenticate.assertCompromisedInstantaneously();
+        //fc.access.assertCompromisedInstantaneously();???
+        System.out.println();
+    }
+    
+    @Test
+    public void testARAAccess(){
+        initializeObjects();
+        ARA ara = new ARA("ARA");
+        adaptiveApplication.addFcInterfaces(ara);
+        
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(adaptiveApplication.access);
+        attacker.attack();
+        
+        System.out.println("An attacker having AA.access,");
+        ara.access.assertCompromisedInstantaneously();
+        ara.denialOfService.assertCompromisedInstantaneously();
+        ara.informationLeak.assertUncompromised();
+        ara.messageInjection.assertUncompromised();
         System.out.println();
     }
     
@@ -126,13 +137,54 @@ public class CoreAdaptiveApplicationTest {
         attacker.attack();
         
         System.out.println("An attacker having AA.access,");
-        adaptiveApplication._softwareAccess.assertCompromisedInstantaneously();
-        adaptiveApplication.provideFakeService.assertCompromisedInstantaneously();
+        adaptiveApplication._adaptivePlatformAccess.assertCompromisedInstantaneously();
         adaptiveApplication.denialOfService.assertCompromisedInstantaneously();
         adaptiveApplication.provideFakeService.assertCompromisedInstantaneously();
+        adaptiveApplication.requestService.assertCompromisedInstantaneously();
+        System.out.println();
+    }
+  
+    @Test
+    public void testDataDenyAccess(){
+        initializeObjects();
+        Data data = new Data("Data");
+        adaptiveApplication.addData(data);
+        
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(adaptiveApplication.denialOfService);
+        attacker.attack();
+        
+        System.out.println("An attacker having AA.denialOfService,");
+        data.denyAccess.assertUncompromised();//???
         System.out.println();
     }
     
+    @Test
+    public void testAdaptiveApplicationAccess4(){
+        initializeObjects();
+        
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(adaptiveApplication.compromise);
+        attacker.attack();
+        
+        System.out.println("An attacker having AA.compromise,");
+        adaptiveApplication.access.assertCompromisedInstantaneously();
+        System.out.println();
+    }
+    
+    @Test
+    public void testAdaptiveApplicationAccess3(){
+        initializeObjects();
+        
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(adaptiveApplication.launch);
+        attacker.attack();
+        
+        System.out.println("An attacker having AA.launch,");
+        adaptiveApplication.access.assertCompromisedInstantaneously();
+        System.out.println();
+    }
+
     @Test
     public void testAdaptiveApplicationAccess2(){
         initializeObjects();

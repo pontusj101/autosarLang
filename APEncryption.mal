@@ -1,0 +1,85 @@
+include APSoftware.mal
+
+category Communication {
+	asset EncryptedData extends Data
+      info: "Data is a concrete, syntactic representation of Information at rest."
+	{
+		& authenticatedRead
+			info: "Access and authentication will allow reading of data."
+			-> readEncrypted
+
+		& authenticatedWrite
+			info: "Access and authentication will allow writing of data."
+			-> writeEncrypted
+
+		& readEncrypted
+			->	read
+
+		& writeEncrypted
+			-> write
+
+		E decryptionKeysExist
+			info: "If any decryption keys exist, this defense step is compromised, but if not, this will prevent readEncrypted from being reached."
+			rationale: "Without this step, readEncrypted will, in the case of no modelled keys, be compromised, which is counterintuitive."
+			<- decryptionKeys
+			-> readEncrypted
+
+		E encryptionKeysExist
+			info: "If any encryption keys exist, this defense step is compromised, but if not, this will prevent witeEncrypted from being reached."
+			rationale: "Without this step, writeEncrypted will, in the case of no modelled keys, be compromised, which is counterintuitive."
+			<- encryptionKeys
+			-> writeEncrypted
+	}
+	
+	asset PersistentData extends EncryptedData 
+		info: "Persistent data is always encrypted." {}
+}
+
+category Security {
+	asset CryptographicKey extends Data {
+       | read
+         	-> 	decryptedData.readEncrypted,
+				encryptedData.writeEncrypted
+	}
+	
+	asset CryptoStack extends AdaptivePlatformService {
+         | access
+         	info: "Get access to the cryptographic services."
+         	rationale: "<iam.requestAuthentication> is a special case in this asset, the FC has an accessRequest attack step which calls for IAM. In addition to it, CryptoStack asks IAM for access requests of its special services."
+            -> 	_adaptivePlatformAccess,
+				circumventPEP,
+               	circumventCryptoService,
+               	keys.read,
+               	denialOfService,
+               	iam.requestAuthentication
+
+         | denialOfService
+            info: "Denial of cryptographic services to requesting applications."
+            rationale: "Functional cluster will not accessible from any requesting app."
+            -> 	encryptedData.denyAccess,
+            	decryptedData.denyAccess, 
+            	persistentData.denyAccess 
+
+         | circumventCryptoService
+            info: "Circumvent the crypto service manager."
+            -> 	denialOfService,
+            	decryptedData.readEncrypted,
+               	encryptedData.writeEncrypted
+
+		 | circumventPEP
+      		info: "An attacker can circumvent the policy enforcement point (PEP) of the CryptoStack and return pretended IAM authentication result."
+      		rationale: "With this attack step, an attacker can do two different things. 1. Deny access while authenticated correctly. 2. Bypass access control while authentication is rejected."
+      		->	persistentData.requestAccess,
+      			persistentData.denyAccess 
+	}
+}
+
+associations {	
+	EncryptedData [decryptedData]	*	<-- Decryption			-->	*				[decryptionKeys]	CryptographicKey
+   	EncryptedData [encryptedData]	*	<-- Encryption			-->	*				[encryptionKeys]	CryptographicKey
+	
+	CryptoStack [cryptoService] 	0-1	<--	CryptoService		-->	*							[keys]	CryptographicKey
+	CryptoStack [encProgram] 		0-1	<--	Encryption			-->	*					[encryptedData]	EncryptedData
+	CryptoStack [decProgram] 		0-1	<--	Decryption			-->	*					[decryptedData]	EncryptedData
+	CryptoStack [cryptoProgram] 	0-1	<--	DataSecurity		-->	*				[persistentData]	PersistentData
+}
