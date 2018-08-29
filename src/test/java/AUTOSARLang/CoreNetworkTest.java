@@ -5,7 +5,6 @@ import org.junit.After;
 
 import auto.*;
 import core.*;
-
 public class CoreNetworkTest {
 
    @Test
@@ -121,5 +120,3 @@ public class CoreNetworkTest {
 
 
 }
-
-
