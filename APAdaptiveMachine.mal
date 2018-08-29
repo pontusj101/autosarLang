@@ -5,7 +5,6 @@
 include APBasicMachine.mal
 
 category System {
-
 	asset AdaptiveMachine extends Machine 
 		info: "An adaptive machine is a hardware or virtual machine that executes an adaptive platform instance." 
 	{
