@@ -139,7 +139,7 @@ public class CoreAdaptiveApplicationTest {
         System.out.println("An attacker having AA.access,");
         adaptiveApplication._adaptivePlatformAccess.assertCompromisedInstantaneously();
         adaptiveApplication.denialOfService.assertCompromisedInstantaneously();
-        adaptiveApplication.provideFakeService.assertCompromisedInstantaneously();
+        adaptiveApplication.provideIllegitimateService.assertCompromisedInstantaneously();
         adaptiveApplication.requestService.assertCompromisedInstantaneously();
         System.out.println();
     }
