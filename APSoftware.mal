@@ -1,7 +1,6 @@
 include APAdaptiveMachine.mal
 
-category System {
-	
+category System {	
 	//Directly taken from the coreLang ---------
 	asset Service extends Software {}
 	asset Client extends Software {}
@@ -157,7 +156,7 @@ category System {
 			rationale: "This defense mechanism is a more general one that includes data execution prevention, stack smashing protection, address space layout randomization, control-flow integrity, code-pointer integrity/separation, pointer authentication, etc [6|pages20-27]."
 			->	memoryCorruption
 
-		# antiMalware [UniformDistribution(1.0,2.0)]
+		# antiMalware [ExponentialDistribution(2.0)]
 			->	malware
 	}
 
