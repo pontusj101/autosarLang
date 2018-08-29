@@ -11,7 +11,6 @@ public class CoreIAMTest {
     public void testDataAttack(){
         IAM iam = new IAM("IAM");
         Data data = new Data("Data");
-
         iam.addData(data);
         
         Attacker attacker = new Attacker();
