@@ -5,7 +5,6 @@ import org.junit.After;
 
 import auto.*;
 import core.*;
-
 public class CoreBusNetworkTest {
 
     @Test
