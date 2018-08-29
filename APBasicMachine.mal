@@ -2,8 +2,7 @@
 //This MAL specification defines a model of a basic general-purpose machine that comprises a software, stored data and its information, accounts to access the machine, credentials for each account, machine vulnerabilities, and users. An asset in the specification represents each of the components.
 //----------------------
 
-category System {
-	
+category System {	
 	//Taken from coreLang, and reorganized
 	asset Machine {
 		| connect 
