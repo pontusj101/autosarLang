@@ -5,7 +5,6 @@ import org.junit.After;
 
 import auto.*;
 import core.*;
-
 public class CoreMachineTest {
 
    @Test
@@ -16,8 +15,7 @@ public class CoreMachineTest {
       Attacker attacker = new Attacker();
       attacker.addAttackPoint(machine.connect);
       attacker.addAttackPoint(machine.authenticate);
-      
-		attacker.attack();
+      attacker.attack();
 
       machine.access.assertCompromisedInstantaneously();
       machine.denialOfService.assertCompromisedInstantaneously();
@@ -25,126 +23,118 @@ public class CoreMachineTest {
 
    @Test
    public void testSoftwareHostToGuest() {
+        Machine machine = new Machine("Machine");
+        Software software1 = new Software("Software1");
+        Software software2 = new Software("Software2");
+        Account account = new Account("Account");
 
-      Machine machine = new Machine("Machine");
-		Software software1 = new Software("Software1");
-		Software software2 = new Software("Software2");
-		Account account = new Account("Account");
+        machine.addAccounts(account);
+        software1.addExecutor(machine);
+        software2.addExecutor(machine);
+        software1.addAccounts(account);
 
-		machine.addAccounts(account);
-		software1.addExecutor(machine);
-		software2.addExecutor(machine);
-		software1.addAccounts(account);
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(machine.connect);
+        attacker.addAttackPoint(account.compromise);
 
-      Attacker attacker = new Attacker();
-      attacker.addAttackPoint(machine.connect);
-      attacker.addAttackPoint(account.compromise);
-      
-		attacker.attack();
-
-		machine.access.assertCompromisedInstantaneously();
-      software1.connect.assertCompromisedInstantaneously();
-      software1.access.assertCompromisedInstantaneously();
-		software2.connect.assertCompromisedInstantaneously();
-		software2.access.assertUncompromised();
-		
+        attacker.attack();
+        machine.access.assertCompromisedInstantaneously();
+        software1.connect.assertCompromisedInstantaneously();
+        software1.access.assertCompromisedInstantaneously();
+        software2.connect.assertCompromisedInstantaneously();
+        software2.access.assertUncompromised();	
    }
 
    @Test
    public void testSoftwareGuestHost() {
 
-      Machine machine = new Machine("Machine12");
-		Software software = new Software("Software123");
+        Machine machine = new Machine("Machine12");
+        Software software = new Software("Software123");
 
-		software.addExecutor(machine);
+        software.addExecutor(machine);
 
-      Attacker attacker = new Attacker();
-      attacker.addAttackPoint(software.connect);
-      attacker.addAttackPoint(software.authenticate);
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(software.connect);
+        attacker.addAttackPoint(software.authenticate);
       
-		attacker.attack();
+        attacker.attack();
 
-		software.access.assertCompromisedInstantaneously();
-      machine.connect.assertCompromisedInstantaneously();
-      machine.access.assertUncompromised();
+        software.access.assertCompromisedInstantaneously();
+        machine.connect.assertCompromisedInstantaneously();
+        machine.access.assertUncompromised();
    }
 
    @Test
    public void testMachineAccountDataRWD() {
+        Machine machine = new Machine("Machine");
+        Account account = new Account("Account");
+        Data data = new Data("Data");
 
-
-      Machine machine = new Machine("Machine");
-		Account account = new Account("Account");
-		Data data = new Data("Data");
-	
-		machine.addAccounts(account);
+        machine.addAccounts(account);
    	machine.addData(data);   
-		account.addReadData(data);
-	
-		Attacker attacker = new Attacker();
-      attacker.addAttackPoint(machine.connect);
-		attacker.addAttackPoint(account.compromise);      
+        account.addReadData(data);
 
-		attacker.attack();
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(machine.connect);
+        attacker.addAttackPoint(account.compromise);      
 
-      data.requestAccess.assertCompromisedInstantaneously();
-      data.anyAccountRead.assertCompromisedInstantaneously();
-      data.read.assertCompromisedInstantaneously();
-      data.anyAccountWrite.assertUncompromised();
-      data.write.assertUncompromised();
+        attacker.attack();
+
+        data.requestAccess.assertCompromisedInstantaneously();
+        data.anyAccountRead.assertCompromisedInstantaneously();
+        data.read.assertCompromisedInstantaneously();
+        data.anyAccountWrite.assertUncompromised();
+        data.write.assertUncompromised();
    }
 
    @Test
    public void testStealCredsReadData() {
+        Machine machine = new Machine("Machine");
+        Account userAccount = new Account("UserAccount");
+        Account hacker = new Account("Hacker");
+        Credentials creds = new Credentials("Credentials");
+        Data data = new Data("Data");
 
-
-      Machine machine = new Machine("Machine");
-		Account userAccount = new Account("UserAccount");
-		Account hacker = new Account("Hacker");
-		Credentials creds = new Credentials("Credentials");
-		Data data = new Data("Data");
-		
-		userAccount.addCredentials(creds);
-		machine.addAccounts(userAccount);
-		machine.addAccounts(hacker);
+        userAccount.addCredentials(creds);
+        machine.addAccounts(userAccount);
+        machine.addAccounts(hacker);
    	machine.addData(data);   
-		userAccount.addReadData(data);
-		machine.addData(creds);
-		hacker.addReadData(creds);
-	
-		Attacker attacker = new Attacker();
-      attacker.addAttackPoint(machine.connect);
-		attacker.addAttackPoint(hacker.compromise);      
+        userAccount.addReadData(data);
+        machine.addData(creds);
+        hacker.addReadData(creds);
 
-		attacker.attack();
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(machine.connect);
+        attacker.addAttackPoint(hacker.compromise);      
 
-		creds.requestAccess.assertCompromisedInstantaneously();
-		creds.read.assertCompromisedInstantaneously();
-		userAccount.compromise.assertCompromisedInstantaneously();
-		data.requestAccess.assertCompromisedInstantaneously();
-      data.anyAccountRead.assertCompromisedInstantaneously();
-      data.read.assertCompromisedInstantaneously();
-      data.anyAccountWrite.assertUncompromised();
-      data.write.assertUncompromised();
+        attacker.attack();
+
+        creds.requestAccess.assertCompromisedInstantaneously();
+        creds.read.assertCompromisedInstantaneously();
+        userAccount.compromise.assertCompromisedInstantaneously();
+        data.requestAccess.assertCompromisedInstantaneously();
+        data.anyAccountRead.assertCompromisedInstantaneously();
+        data.read.assertCompromisedInstantaneously();
+        data.anyAccountWrite.assertUncompromised();
+        data.write.assertUncompromised();
    }
 
    @Test
    public void testCompromiseAuthenticationService() {
+        AuthenticationService ad = new AuthenticationService("AD");
+        Account domainAdmin = new Account("DomainAdmin");
+        Account userAccount = new Account("UserAccount");
 
-		AuthenticationService ad = new AuthenticationService("AD");
-		Account domainAdmin = new Account("DomainAdmin");
-		Account userAccount = new Account("UserAccount");
+        ad.addAccounts(domainAdmin);
+        ad.addAuthenticatedAccounts(userAccount);
 
-		ad.addAccounts(domainAdmin);
-		ad.addAuthenticatedAccounts(userAccount);
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(ad.connect);
+        attacker.addAttackPoint(domainAdmin.compromise);
 
-      Attacker attacker = new Attacker();
-      attacker.addAttackPoint(ad.connect);
-      attacker.addAttackPoint(domainAdmin.compromise);
-      
-		attacker.attack();
+        attacker.attack();
 
-      userAccount.compromise.assertCompromisedInstantaneously();
+        userAccount.compromise.assertCompromisedInstantaneously();
    }
 
 
@@ -176,14 +166,10 @@ public class CoreMachineTest {
       someData.write.assertCompromisedInstantaneously();
    }
 
-	@After
-	public void deleteModel() {
-		Asset.allAssets.clear();
-		AttackStep.allAttackSteps.clear();
-		Defense.allDefenses.clear();
-	}
-
-
+    @After
+    public void deleteModel() {
+        Asset.allAssets.clear();
+        AttackStep.allAttackSteps.clear();
+        Defense.allDefenses.clear();
+    }
 }
-
-
