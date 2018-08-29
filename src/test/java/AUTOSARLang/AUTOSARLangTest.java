@@ -6,6 +6,7 @@ import org.junit.After;
 import auto.*;
 import core.*;
 public class AUTOSARLangTest {
+    
         /*
                              [Bus]---[ECU4]
                              |
@@ -70,6 +71,9 @@ public class AUTOSARLangTest {
         //data.authenticatedDelete.assertUncompromised();
         System.out.println();
     }
+    
+    
+    
     
     @After
     public void deleteModel() {
