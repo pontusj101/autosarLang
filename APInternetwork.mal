@@ -1,7 +1,6 @@
 include APServices.mal
 
 category System {
-
 	//Partially taken from vehicleLang with some modifications 
 	asset ECU extends AdaptiveMachine 
 		info: "An intelligent ECU, which is designed to support high-performance computing and high-speed connectivity."
