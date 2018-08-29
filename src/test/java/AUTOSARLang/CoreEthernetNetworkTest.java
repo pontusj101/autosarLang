@@ -5,8 +5,7 @@ import org.junit.After;
 
 import auto.*;
 import core.*;
-public class CoreEthernetNetworkTest {
-    
+public class CoreEthernetNetworkTest {  
     
     @Test
     public void testEthernetNetworkConditionally(){
