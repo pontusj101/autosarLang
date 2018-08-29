@@ -104,8 +104,7 @@ public class CoreEcuTest {
         [ECU] --> exploit --> [Vulnerability] --> compromise --> [Account]
           |                                                         |
         access - [Attacker]                       [Account] <-- compromise
-    */   
-    
+    */      
     @Test
     public void testAccountCompromiseViaVulnThenAccount(){
         ECU ecu = new ECU("ECU");
