@@ -5,9 +5,7 @@ import org.junit.After;
 
 import auto.*;
 import core.*;
-
-public class CoreOperatingSystemTest {
-    
+public class CoreOperatingSystemTest { 
    
     @Test
     public void testOSConditionally(){
