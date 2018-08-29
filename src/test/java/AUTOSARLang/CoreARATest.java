@@ -43,7 +43,6 @@ public class CoreARATest {
         
         System.out.println("An attacker having ARA.denialOfService,");
         userApplication1.denialOfService.assertCompromisedInstantaneously();
-        //userApplication2.denialOfService.assertCompromisedInstantaneously();
         System.out.println();
     }
     
