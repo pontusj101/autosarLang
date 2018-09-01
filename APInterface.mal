@@ -34,6 +34,6 @@ category System {
 associations {	
 	AdaptiveApplication [adapApps]	*	<--	AppData 			-->	*							[data]	Data	
 	AdaptiveApplication [adapApps]	*	<--	AppPersistentData	-->	*				[persistentData]	PersistentData	
-	AdaptiveApplication [appClient]	* 	<-- ServiceRequest 		--> 0-1 					[cmService]	CommunicationManagement
-	AdaptiveApplication [npService]	* 	<-- ServiceRespond 		--> 0-1 					[cmClient]	CommunicationManagement
+	AdaptiveApplication [appClient]	* 	<-- ServiceRequest 		--> 0-1 					[cmService]	NetworkServiceAndClient
+	AdaptiveApplication [npService]	* 	<-- ServiceRespond 		--> 0-1 					[cmClient]	NetworkServiceAndClient
 }

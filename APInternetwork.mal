@@ -117,12 +117,10 @@ category System {
 	}
 
 	//AUTOSARLang specific ---------------------
-	asset CommunicationManagement extends AdaptivePlatformFoundation 
-		info: "CM is a foundational functionality that the platform should constitute. It handles network services request and reply with a service-oriented architecture model." 
-	{
+	asset NetworkServiceAndClient extends AdaptivePlatformFoundation {
 		| access
-			info: "Get access to the communication management."
-			rationale: "Once an attacker gets access to CM, she can act as both network service and network client."
+			info: "Get access to the communication management or REST."
+			rationale: "Once an attacker gets access to CM or REST, she can act as both network service and network client."
 			->	_adaptivePlatformAccess,
 				dataflows.request,
 				dataflows.respond,
@@ -131,21 +129,11 @@ category System {
 		| denialOfService
 			-> 	dataflows.denialOfService
 	}
+	asset CommunicationManagement extends NetworkServiceAndClient 
+		info: "CM is a foundational functionality that the platform should constitute. It handles network services request and reply with a service-oriented architecture model." {}
 
-	asset REST extends AdaptivePlatformFoundation 
-		info: "RESTful is a foundational functionality that handles network services request and reply with a network binding via HTTP/JSON communication format." 
-	{
-		| access
-			info: "Get access to the REST."
-			rationale: "Once an attacker gets access to REST, she can act as both network service and network client."
-			->	_adaptivePlatformAccess,
-				dataflows.request,
-				dataflows.respond,
-				denialOfService
-		
-		| denialOfService
-			->	dataflows.denialOfService
-	}
+	asset REST extends NetworkServiceAndClient 
+		info: "RESTful is a foundational functionality that handles network services request and reply with a network binding via HTTP/JSON communication format." {}
 }
 
 category Networking {
@@ -339,11 +327,14 @@ category Communication {
 			->	data.delete
 
 		| request
-			->	services.connect
+			->	services.connect,
+				nsc.connect // new
 
 		| respond
 			->	clients.connect,
-				executingClients.access
+				executingClients.access,
+				nsc.connect, //new
+				nsc.access //new
 	}
 }
 
@@ -353,6 +344,7 @@ associations {
 	Network [networks]				* 	<-- Listening		 	--> *						[service]	NetworkService
 	Dataflow [dataflows]			*	<-- Request				--> *						[clients]	NetworkClient
 	Dataflow [dataflows]			* 	<-- Response			--> *						[services]	NetworkService
+	Dataflow [dataflows]			*	<-- RequestRequest		--> *							[nsc]	NetworkServiceAndClient
 	Dataflow [programDistributionFlow] * <-- ProgramDistributionToClient --> *		[executingClients] 	NetworkClient
 		info: "Some servers distribute programs to clients, e.g. software updates, or Web applications."
 	Dataflow [programDistributionFlow] * <-- ProgramDistributionFromServer --> *	[providingServices]	NetworkService
@@ -367,5 +359,5 @@ associations {
 	ECU	[hardware] 					1	<-- FirmwareExecution 	-->	0-1						[firmware]	Firmware
 		info: "Every ECU can have (up to one) firmware running on it."
 	ECU [networkedEcus]				*	<--	Connection			-->	0-1						[vNetworks]	VehicleNetwork
-	ECU [busNetworkedEcus] 			*	<--	EcuBusConnection	-->	0-1				 	[busNetwork]	BusNetwork 	
+	ECU [busNetworkedEcus] 			*	<--	Connection			-->	0-1				 	[busNetwork]	BusNetwork 	
 }

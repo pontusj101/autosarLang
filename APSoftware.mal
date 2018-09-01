@@ -250,15 +250,15 @@ associations {
 		info: "User applications provide non-platform services to other user applications."		 
 
 	ARA [fcInterfaces]				*	<--	DataProcess 		-->	*							[data]	Data
-	ARA [fcInterfaces]				*	<--	ProcessedDataLeak	-->	*					[information]	Information
-	ARA [library]					0-1	<-- LibraryInterface 	--> *					[platformApps]	FunctionalCluster
+	ARA [fcInterfaces]				*	<--	ProcessedData		-->	*					[information]	Information
+	ARA [library]					0-1	<-- InterfacesLibrary 	--> *					[platformApps]	FunctionalCluster
 
-	OperatingSystem [os] 			1 	<-- OsAccounts 			--> *						[accounts]	Account	
+	OperatingSystem [os] 			0-1 <-- OsAccounts 			--> *						[accounts]	Account	
 	OperatingSystem [os]			*	<--	DataProcess 		-->	*							[data]	Data
 	OperatingSystem [os]			*	<--	ProcessedData		-->	*					[information]	Information	
 	OperatingSystem [os] 			1 	<-- ApOs 				--> *					[apInstance]	AdaptivePlatform
 
-	ExecutionManagement [em]		1	<-- AAManagement 		--> * 						[userApps]	UserApplication 
+	ExecutionManagement [em]		1	<-- UAManagement 		--> * 						[userApps]	UserApplication 
 	ExecutionManagement [em]		*	<-- FCManagement 		--> * 					[platformApps]	FunctionalCluster
 
 	IAM[iam]						*	<-- Authentication 		--> *					[platformApps]	FunctionalCluster
