@@ -137,6 +137,45 @@ public class CoreOperatingSystemTest {
     }
     
     @Test
+    public void testOperatingSystemAttacksByMalware(){
+        OperatingSystem os = new OperatingSystem("OperatingSystem");
+        Data data = new Data("Data");
+        Account account = new Account("Account");
+        Information info = new Information("Information");
+        AdaptiveMachine am = new AdaptiveMachine("AP");
+        AdaptivePlatform ap = new AdaptivePlatform("AP");
+        
+        IAM iam = new IAM("IAM");
+        CryptoStack crypto = new CryptoStack("CryptoStack");
+        ExecutionManagement em = new ExecutionManagement("EM");
+        
+        os.addAccounts(account);
+        data.addInformation(info);
+        os.addData(data);
+        os.addAdaptiveMachine(am);
+        os.addApInstance(ap);
+        
+        Attacker attacker = new Attacker();
+        attacker.addAttackPoint(os.malware);
+        attacker.attack();
+        
+        System.out.println("An attacker having OS.Malware,");
+        account.compromise.assertCompromisedInstantaneously();
+        data.read.assertCompromisedInstantaneously();
+        data.write.assertCompromisedInstantaneously();
+        data.denyAccess.assertCompromisedInstantaneously();
+        os.memoryCorruption.assertCompromisedInstantaneously();
+        os.denialOfService.assertCompromisedInstantaneously();
+        os.bypassAccessControl.assertCompromisedInstantaneously();
+        ap.denialOfService.assertCompromisedInstantaneously();
+        am.denialOfService.assertCompromisedInstantaneously();
+        iam.denialOfService.assertUncompromised();
+        crypto.denialOfService.assertUncompromised();
+        em.denialOfService.assertUncompromised();
+        System.out.println();
+    }
+    
+    @Test
     public void testOperatingSystemAttacks(){
         OperatingSystem operatingSystem = new OperatingSystem("OperatingSystem");
         
