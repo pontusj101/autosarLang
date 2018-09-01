@@ -1,0 +1,368 @@
+{
+ "name": "securiLang",
+ "children": [
+  {
+   "name": "Machine",
+   "children": [
+    {
+     "name": "connect",
+     "type": "or",
+     "targets": [
+      {"name": "_machineConnect", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "_machineConnect",
+     "type": "or",
+     "targets": [
+      {"name": "authenticatedAccess", "entity_name": "Machine", "size": 4000},
+      {"name": "compromise", "entity_name": "Account", "size": 4000},
+      {"name": "exploit", "entity_name": "Vulnerability", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticate",
+     "type": "or",
+     "targets": [
+      {"name": "authenticatedAccess", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticatedAccess",
+     "type": "and",
+     "targets": [
+      {"name": "access", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "bypassAccessControl",
+     "type": "or",
+     "targets": [
+      {"name": "access", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "access",
+     "type": "or",
+     "targets": [
+      {"name": "_machineAccess", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "_machineAccess",
+     "type": "or",
+     "targets": [
+      {"name": "denialOfService", "entity_name": "Machine", "size": 4000},
+      {"name": "connect", "entity_name": "Software", "size": 4000},
+      {"name": "requestAccess", "entity_name": "Data", "size": 4000},
+      {"name": "exploit", "entity_name": "Vulnerability", "size": 4000}
+     ]
+    },
+    {
+     "name": "denialOfService",
+     "type": "or",
+     "targets": [
+      {"name": "denialOfService", "entity_name": "Software", "size": 4000},
+      {"name": "denyAccess", "entity_name": "Data", "size": 4000}
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Software",
+   "children": [
+    {
+     "name": "access",
+     "type": "or",
+     "targets": [
+      {"name": "_softwareAccess", "entity_name": "Software", "size": 4000},
+      {"name": "access", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "_softwareAccess",
+     "type": "or",
+     "targets": [
+      {"name": "_machineAccess", "entity_name": "Software", "size": 4000},
+      {"name": "connect", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "connect",
+     "type": "or",
+     "targets": [
+      {"name": "connect", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "_machineConnect",
+     "type": "or",
+     "targets": [
+      {"name": "_machineConnect", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticate",
+     "type": "or",
+     "targets": [
+      {"name": "authenticate", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticatedAccess",
+     "type": "and",
+     "targets": [
+      {"name": "authenticatedAccess", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "bypassAccessControl",
+     "type": "or",
+     "targets": [
+      {"name": "bypassAccessControl", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "_machineAccess",
+     "type": "or",
+     "targets": [
+      {"name": "_machineAccess", "entity_name": "Machine", "size": 4000}
+     ]
+    },
+    {
+     "name": "denialOfService",
+     "type": "or",
+     "targets": [
+      {"name": "denialOfService", "entity_name": "Machine", "size": 4000}
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Information",
+   "children": [
+    {
+     "name": "read",
+     "type": "or"
+    },
+    {
+     "name": "write",
+     "type": "and"
+    },
+    {
+     "name": "delete",
+     "type": "and"
+    }
+   ]
+  },
+  {
+   "name": "Data",
+   "children": [
+    {
+     "name": "requestAccess",
+     "type": "or",
+     "targets": [
+      {"name": "authenticatedRead", "entity_name": "Data", "size": 4000},
+      {"name": "authenticatedWrite", "entity_name": "Data", "size": 4000},
+      {"name": "authenticatedDelete", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "anyAccountRead",
+     "type": "or",
+     "targets": [
+      {"name": "authenticatedRead", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "anyAccountWrite",
+     "type": "or",
+     "targets": [
+      {"name": "authenticatedWrite", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "anyAccountDelete",
+     "type": "or",
+     "targets": [
+      {"name": "authenticatedDelete", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticatedRead",
+     "type": "and",
+     "targets": [
+      {"name": "read", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticatedWrite",
+     "type": "and",
+     "targets": [
+      {"name": "write", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticatedDelete",
+     "type": "and",
+     "targets": [
+      {"name": "delete", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "read",
+     "type": "or",
+     "targets": [
+      {"name": "read", "entity_name": "Information", "size": 4000},
+      {"name": "read", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "write",
+     "type": "or",
+     "targets": [
+      {"name": "delete", "entity_name": "Data", "size": 4000},
+      {"name": "write", "entity_name": "Information", "size": 4000},
+      {"name": "write", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "delete",
+     "type": "or",
+     "targets": [
+      {"name": "delete", "entity_name": "Information", "size": 4000},
+      {"name": "delete", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "denyAccess",
+     "type": "or"
+    }
+   ]
+  },
+  {
+   "name": "Account",
+   "children": [
+    {
+     "name": "compromise",
+     "type": "or",
+     "targets": [
+      {"name": "authenticate", "entity_name": "Machine", "size": 4000},
+      {"name": "anyAccountRead", "entity_name": "Data", "size": 4000},
+      {"name": "anyAccountWrite", "entity_name": "Data", "size": 4000},
+      {"name": "anyAccountDelete", "entity_name": "Data", "size": 4000},
+      {"name": "compromise", "entity_name": "Account", "size": 4000}
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Credentials",
+   "children": [
+    {
+     "name": "read",
+     "type": "or",
+     "targets": [
+      {"name": "compromise", "entity_name": "Account", "size": 4000},
+      {"name": "read", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "requestAccess",
+     "type": "or",
+     "targets": [
+      {"name": "requestAccess", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "anyAccountRead",
+     "type": "or",
+     "targets": [
+      {"name": "anyAccountRead", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "anyAccountWrite",
+     "type": "or",
+     "targets": [
+      {"name": "anyAccountWrite", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "anyAccountDelete",
+     "type": "or",
+     "targets": [
+      {"name": "anyAccountDelete", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticatedRead",
+     "type": "and",
+     "targets": [
+      {"name": "authenticatedRead", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticatedWrite",
+     "type": "and",
+     "targets": [
+      {"name": "authenticatedWrite", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "authenticatedDelete",
+     "type": "and",
+     "targets": [
+      {"name": "authenticatedDelete", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "write",
+     "type": "or",
+     "targets": [
+      {"name": "write", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "delete",
+     "type": "or",
+     "targets": [
+      {"name": "delete", "entity_name": "Data", "size": 4000}
+     ]
+    },
+    {
+     "name": "denyAccess",
+     "type": "or",
+     "targets": [
+      {"name": "denyAccess", "entity_name": "Data", "size": 4000}
+     ]
+    }
+   ]
+  },
+  {
+   "name": "Vulnerability",
+   "children": [
+    {
+     "name": "exploit",
+     "type": "or",
+     "targets": [
+      {"name": "compromise", "entity_name": "Account", "size": 4000}
+     ]
+    }
+   ]
+  },
+  {
+   "name": "User",
+   "children": [
+    {
+     "name": "compromise",
+     "type": "or",
+     "targets": [
+      {"name": "compromise", "entity_name": "Account", "size": 4000}
+     ]
+    }
+   ]
+  }
+ ]
+}
+
